@@ -20,10 +20,13 @@ Na placa, há um push button destinado ao reset forçado do 4026 e um switch que
 
 # Colaboradores:
 
-|[<img src="https://avatars.githubusercontent.com/u/177877856?v=4" width="115"><br><small>@franksteps</small>](https://github.com/franksteps)| 
-|[<img src="https://avatars.githubusercontent.com/u/186333867?v=4" width="115"><br><small>@4rth-gs</small>](https://github.com/4rth-g)|
-|[<img src="https://avatars.githubusercontent.com/u/190228986?v=4" width="115"><br><small>@RenatoVPF</small>](https://github.com/RenatoVPF)|
-|[<img src="https://avatars.githubusercontent.com/u/186655848?v=4" width="115"><br><small>@Cadu-ux</small>](https://github.com/Cadu-ux)|
-|[<img src="https://avatars.githubusercontent.com/u/161770679?v=4" width="115"><br><small>@matheusmatos4</small>](https://github.com/matheusmatos4)|
+| | | | | |
+|---|---|---|---|---|
+| [<img src="https://avatars.githubusercontent.com/u/177877856?v=4" width="115"><br><small>@franksteps</small>](https://github.com/franksteps) 
+| [<img src="https://avatars.githubusercontent.com/u/186333867?v=4" width="115"><br><small>@4rth-gs</small>](https://github.com/4rth-g) 
+| [<img src="https://avatars.githubusercontent.com/u/190228986?v=4" width="115"><br><small>@RenatoVPF</small>](https://github.com/RenatoVPF) 
+| [<img src="https://avatars.githubusercontent.com/u/186655848?v=4" width="115"><br><small>@Cadu-ux</small>](https://github.com/Cadu-ux) 
+| [<img src="https://avatars.githubusercontent.com/u/161770679?v=4" width="115"><br><small>@matheusmatos4</small>](https://github.com/matheusmatos4) |
+
 
 
