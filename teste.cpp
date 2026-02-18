@@ -6,6 +6,48 @@
 #include <string>
 #include <atomic>
 
+#include <mutex>
+
+// Chip555: gerador de clock (NE555 em modo astável)
+class Chip555{
+    private:
+        // configuração dos componentes eletrônicos -> 1 capacitor e 2 resistores
+        // output começa em LOW (false)
+        bool output = false;
+        double R1, R2, C;
+        const double Ln2 = 0.693;
+
+        double tHigh(){
+            return Ln2*(R1 + R2)*C;
+        }
+
+        double tLow(){
+            return Ln2*R2*C;
+        }
+
+        void clock(){
+            output = !output;
+        }
+
+    public:
+        Chip555(double r1, double r2, double c )
+            : R1(r1), R2(r2), C(c) {}
+
+        // um período completo (HIGH + LOW)
+        void pulse(){
+            clock();
+            std::this_thread::sleep_for(std::chrono::duration<double>(tHigh()));
+            clock();
+            std::this_thread::sleep_for(std::chrono::duration<double>(tLow()));
+        }
+
+        // útil pra debug/print
+        double period() const {
+            // tHigh + tLow
+            return 0.693*(R1 + 2.0*R2)*C;
+        }
+};
+
 // Chipe4017 (versão baseada no modelo: bit "1" deslocando-se para a direita)
 class Chip4017{
     public:
@@ -78,8 +120,13 @@ class LampPanel {
 
 int main() {
     try {
-        const unsigned LAMPADAS = 8;                 
-        const auto PERIODO = std::chrono::milliseconds(400); // velocidade do "clock"
+        const unsigned LAMPADAS = 8;
+
+        
+        const double R1 = 10000.0;     // 10kΩ
+        const double R2 = 10000.0;     // 10kΩ
+        const double C  = 22e-6;       // 22µF
+        Chip555 chip555(R1, R2, C);
 
         Chip4017 chip4017(LAMPADAS);
         LampPanel painel(LAMPADAS);
@@ -87,16 +134,27 @@ int main() {
         std::atomic<bool> running{true};
         std::atomic<bool> ligado{false};
 
+        std::mutex mtx; // protege o estado do 4017 (shift/reset/getOut)
+
         // Desenha o estado inicial
-        painel.draw(chip4017.getOut(), ligado.load());
+        {
+            std::lock_guard<std::mutex> lock(mtx);
+            painel.draw(chip4017.getOut(), ligado.load());
+        }
 
         // Thread do "motor": só gera pulsos quando estiver ligado
         std::thread motor([&]{
             while (running.load()) {
                 if (ligado.load()) {
-                    chip4017.shift();
-                    painel.draw(chip4017.getOut(), true);
-                    std::this_thread::sleep_for(PERIODO);
+                    // 555 gera o "tempo" do clock (um ciclo completo)
+                    chip555.pulse();
+
+                    // na borda do clock (simplificado): avança uma vez por pulso
+                    {
+                        std::lock_guard<std::mutex> lock(mtx);
+                        chip4017.shift();
+                        painel.draw(chip4017.getOut(), true);
+                    }
                 } else {
                     // Quando desligado, dorme um pouco pra não consumir CPU
                     std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -108,28 +166,39 @@ int main() {
         std::string line;
         while (running.load()) {
             std::getline(std::cin, line);
-
             if (!std::cin) break; // EOF / erro
 
             if (line == "0") {
                 running.store(false);
                 break;
             }
+
             if (line == "r" || line == "R") {
-                chip4017.reset();
-                painel.draw(chip4017.getOut(), ligado.load());
+                {
+                    std::lock_guard<std::mutex> lock(mtx);
+                    chip4017.reset();
+                    painel.draw(chip4017.getOut(), ligado.load());
+                }
                 continue;
             }
+
             if (line.empty()) {
                 // ENTER: toggle
                 bool novo = !ligado.load();
                 ligado.store(novo);
-                painel.draw(chip4017.getOut(), novo);
+
+                {
+                    std::lock_guard<std::mutex> lock(mtx);
+                    painel.draw(chip4017.getOut(), novo);
+                }
                 continue;
             }
 
             // qualquer outra coisa: ignora e redesenha
-            painel.draw(chip4017.getOut(), ligado.load());
+            {
+                std::lock_guard<std::mutex> lock(mtx);
+                painel.draw(chip4017.getOut(), ligado.load());
+            }
         }
 
         running.store(false);
