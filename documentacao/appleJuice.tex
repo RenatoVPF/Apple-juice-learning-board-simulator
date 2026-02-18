@@ -1,0 +1,97 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{amsmath}
+\usepackage{setspace}
+\usepackage{indentfirst}
+
+\setlength{\parindent}{0.62cm}
+
+\title{Principais componentes da placa Apple Juice e seu respectivo funcionamento}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\section{Temporizador/gerador de clock NE555 em modo astável}
+
+O circuito integrado 555, quando configurado em modo astável, atua como um gerador de onda quadrada contínua, alternando automaticamente entre níveis lógicos alto (1) e baixo (0), sem a necessidade de um sinal de entrada externo.
+
+Esse comportamento pode ser interpretado como um processo periódico contínuo, no qual há alternância de estados em função do tempo.
+
+O funcionamento baseia-se em três componentes principais: dois resistores e um capacitor. O capacitor realiza ciclos sucessivos de carga e descarga:
+\begin{itemize}
+    \item Quando a tensão no capacitor atinge $\frac{2}{3}$ da tensão de alimentação, a saída do circuito é comutada para nível lógico baixo.
+    \item Quando a tensão decai até $\frac{1}{3}$ da tensão de alimentação, a saída retorna ao nível lógico alto.
+\end{itemize}
+
+\vspace{0.5cm}
+
+Os intervalos de tempo associados aos níveis lógico alto e baixo são descritos pelas seguintes equações:
+
+\vspace{0.3cm}
+
+\begin{equation}
+t_{high} = \ln(2)\,(R_1 + R_2)\,C
+\end{equation}
+
+\vspace{0.4cm}
+
+\begin{equation}
+t_{low} = \ln(2)\,R_2\,C
+\end{equation}
+
+\vspace{0.5cm}
+
+A frequência do sinal gerado é dada por:
+
+\vspace{0.3cm}
+
+\begin{equation}
+f = \frac{1}{t_{high} + t_{low}}
+\end{equation}
+
+\vspace{0.5cm}
+
+\section{Contador Johnson 4017}
+
+O circuito integrado 4017 é um contador Johnson de década com dez saídas distintas. A cada pulso de clock recebido, apenas uma saída é ativada em nível lógico alto, enquanto as demais permanecem em nível baixo.
+
+A sequência de ativação das saídas ocorre de forma cíclica:
+\begin{center}
+Q0 $\rightarrow$ Q1 $\rightarrow$ Q2 $\rightarrow$ ... $\rightarrow$ Q9 $\rightarrow$ reinício
+\end{center}
+
+Esse comportamento pode ser interpretado como uma máquina de estados finitos, na qual cada estado corresponde a uma saída ativa. A cada pulso de clock, o sistema transita para o próximo estado da sequência.
+
+O reinício da contagem pode ocorrer automaticamente após o último estado ou por meio de um sinal externo aplicado ao pino de reset. Na placa Apple Juice, o pino Q4 foi conectado direto ao reset para que quando ele ficasse ativo, o sistema reiniciasse.
+
+\section{Contador com display 4026}
+
+O circuito integrado 4026 consiste em um contador decimal acoplado a um decodificador para display de sete segmentos.
+
+A cada pulso de clock recebido, o circuito incrementa seu valor interno, avançando sequencialmente de 0 até 9.
+
+Cada valor é automaticamente convertido em sinais elétricos que controlam diretamente um display de sete segmentos, permitindo a exibição dos números sem a necessidade de circuitos adicionais.
+
+Após atingir o valor máximo (9), o contador retorna ao estado inicial (0), reiniciando o ciclo.
+
+\section{Resumo}
+
+\begin{itemize}
+    \item O 555 é responsável pela geração de um sinal periódico de clock.
+    \item O 4017 realiza a distribuição sequencial desse sinal entre múltiplas saídas.
+    \item O 4026 efetua a contagem dos pulsos e a exibição direta em um display.
+\end{itemize}
+
+\section{Referências}
+
+\begin{itemize}
+    \item Texas Instruments. \textit{NE555 Precision Timer Datasheet}.
+    \item Texas Instruments. \textit{CD4017B Decade Counter/Divider Datasheet}.
+    \item Texas Instruments. \textit{CD4026B Decade Counter/7-Segment Display Driver Datasheet}.
+\end{itemize}
+
+\end{document}
