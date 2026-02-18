@@ -12,10 +12,11 @@ Na placa, há um push button destinado ao reset forçado do 4026 e um switch que
 
 # Como compilar:
 ```
-...  ...  ...
-...  ...  ...
-...  ...  ...
+# compile o programa
+g++ appleJuice.cpp -o appleJuice 
 
+# rode 
+./appleJuice 
 ```
 
 # Colaboradores:
