@@ -90,17 +90,17 @@ class LampPanel {
             clearScreen();
 
             std::cout << "=== Simulador (estilo placa) ===\n";
-            std::cout << "Status: " << (ligado ? "LIGADO" : "DESLIGADO") << "\n\n";
+            std::cout << "Status: " << (ligado ? "\033[1;92mLIGADO\033[0m" : "\033[91mDESLIGADO\033[0m") << "\n\n";
 
             // Mostra lâmpadas da esquerda para a direita (n_ lâmpadas)
             // Como seu Out usa bit alto primeiro, vamos mapear do bit (n_-1) até 0:
-            std::cout << "Lâmpadas: ";
+            std::cout << "\033[1;95mLâmpadas:\033[0m ";
             for (int i = (int)n_ - 1; i >= 0; --i) {
                 bool on = (bits >> i) & 1u;
                 if (on) {
-                    std::cout << "\033[1;34m● \033[0m";  // azul brilhante
+                    std::cout << "\033[1;92m● \033[0m";  // verde brilhante
                 } else {
-                    std::cout << "○ ";
+                    std::cout << "\033[92m○ \033[0m";
                 }
             }
             std::cout << "\n\n";
