@@ -25,6 +25,7 @@
 
 // bibliotecas utilizadas no projeto
 #include <iostream>             // Entrada e saída padrão (cout, cerr, etc.)
+#include <string>               // Manipulação de strings (std::string, std::to_string, etc.)
 #include <cmath>                // Funções matemáticas (pow, sin, etc.)
 #include <cstdint>              // Tipos inteiros com tamanho fixo (uint32_t, int64_t, etc.)
 #include <mutex>                // Controle de exclusão mútua para threads (std::mutex, std::lock_guard)
@@ -32,6 +33,8 @@
 #include <stdexcept>            // Exceções padrão (std::invalid_argument)
 #include <thread>               // Threads do C++ (std::thread)
 #include <chrono>               // Controle de tempo e delays (std::chrono::duration, sleep_for)
+#include <cstdlib>              // Funções utilitárias gerais da biblioteca C (std::exit, std::rand, std::abs, etc.)
+
 
 /*
     Biblioteca responsável pela interface gráfica:
@@ -42,6 +45,163 @@
 */
 namespace ray{
     #include <raylib.h>
+}
+
+
+// função para mostrar o tipo de erro que está acontecendo: debug 
+// [[NORETURN]] static void criticalError(...) ... continua
+
+
+
+/*
+    Classe base que simula o funcionamento de um display decodificador CD4026, responsável por incrementar a contagem 
+    de 0 a 9 e gerar um sinal de carry quando a contagem reinicia (Out volta a 0). 
+
+    a aplicação do virtual é um artifício para o polimorfismo
+*/
+class Chip4026 {
+protected:
+    bool carryOut = false;      // Indica se houve estouro da contagem (Out voltou a 0)
+    unsigned int Out = 0;       // Valor atual do display (0 a 9)
+
+public:
+    virtual ~Chip4026() = default;
+
+    // Incrementa a contagem. Se atingir 9, reinicia e ativa carryOut
+    virtual void add() {
+        if (Out == 9) {
+            Out = 0;
+            carryOut = true;
+        } else {
+            Out++;
+            carryOut = false;
+        }
+    }
+
+    // Reseta o display e desativa o carry
+    virtual void reset() {
+        Out = 0;
+        carryOut = false;
+    }
+
+    // Retorna o valor atual do display
+    unsigned int getOut() const { 
+        return Out; 
+    }
+
+    // Retorna se houve carry na última contagem
+    bool getCarryOut() const { 
+        return carryOut; 
+    }
+};
+
+
+/*
+    Classe que representa o display das unidades.
+    Herda Chip4026 e mantém comportamento padrão da contagem de 0 a 9.
+*/
+class Unidade : public Chip4026 {
+public:
+    // O override indica que este método sobrescreve uma função virtual da classe base, assim o polimorfismo funciona em tempo de execução
+    void add() override {
+        Chip4026::add();
+    }
+};
+
+
+/*
+    Classe que representa o display das dezenas.
+    Herda Chip4026 e adiciona a funcionalidade de incrementar apenas quando recebe um carry da unidade anterior.
+*/
+class Dezena : public Chip4026 {
+public:
+    void addOnCarry(bool carryIn) {
+        if (carryIn) {
+            add(); 
+        }
+    }
+};
+
+/*  
+    ------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------
+    |BLOCOS RESPONSÁVEL PELA CONSTRUÇÃO DE UM ÚNICO DÍGITO DE UM DISPLAY DE 7 SEGMENTOS| 
+    ------------------------------------------------------------------------------------
+    ------------------------------------------------------------------------------------
+*/
+
+// Responsável por desenhar um segmento individual (retângulo)
+static void DrawSegment(ray::Vector2 pos, float width, float height, bool on, ray::Color color) {
+    ray::Color c = on ? color : ray::Fade(ray::BLACK, 0.15f);
+    ray::DrawRectangleV(pos, (ray::Vector2){width, height}, c);
+}
+
+// Desenha um display de 7 segmentos com base no valor (0-9)
+static void DrawSevenSegment(ray::Vector2 pos, float size, unsigned int value, ray::Color color) {
+    float w = size * 0.2f;
+    float h = size * 0.05f;
+    float gap = size * 0.02f;
+
+    // definindo quais segmentos precisam estar ligados para representar o número em específico: Segmentos: A, B, C, D, E, F, G
+    bool seg[7] = {false};
+    switch(value) {
+        case 0: 
+            seg[0]=seg[1]=seg[2]=seg[3]=seg[4]=seg[5]=true; 
+            break;
+        case 1: 
+            seg[1]=seg[2]=true; 
+            break;
+        case 2: 
+            seg[0]=seg[1]=seg[6]=seg[4]=seg[3]=true; 
+            break;
+        case 3: 
+            seg[0]=seg[1]=seg[6]=seg[2]=seg[3]=true; 
+            break;
+        case 4: 
+            seg[5]=seg[6]=seg[1]=seg[2]=true; 
+            break;
+        case 5: 
+            seg[0]=seg[5]=seg[6]=seg[2]=seg[3]=true; 
+            break;
+        case 6: 
+            seg[0]=seg[5]=seg[6]=seg[4]=seg[3]=seg[2]=true; 
+            break;
+        case 7: 
+            seg[0]=seg[1]=seg[2]=true; 
+            break;
+        case 8: 
+            seg[0]=seg[1]=seg[2]=seg[3]=seg[4]=seg[5]=seg[6]=true; 
+            break;
+        case 9: 
+            seg[0]=seg[1]=seg[2]=seg[3]=seg[5]=seg[6]=true; 
+            break;
+    }
+
+    // vetor que armazena as posições dos segmentos
+    ray::Vector2 positions[7] = {
+        {pos.x + w + gap, pos.y},                        // A
+        {pos.x + size - h, pos.y + w + gap},             // B
+        {pos.x + size - h, pos.y + size - w - gap},      // C
+        {pos.x + w + gap, pos.y + size - h + 35},        // D
+        {pos.x, pos.y + size - w - gap},                 // E
+        {pos.x, pos.y + w + gap},                        // F
+        {pos.x + w + gap, pos.y + size/2 - h/2 + 20}     // G
+    };
+
+    // vetor que armazena as dimensões dos segmentos
+    ray::Vector2 dims[7] = {
+        {size - 2*w - 2*gap, h},                         // A
+        {h, size/2 - w - gap},                           // B
+        {h, size/2 - w - gap},                           // C
+        {size - 2*w - 2*gap, h},                         // D
+        {h, size/2 - w - gap},                           // E
+        {h, size/2 - w - gap},                           // F
+        {size - 2*w - 2*gap, h}                          // G
+    };
+
+    for(int i=0; i<7; i++) {
+        DrawSegment(positions[i], dims[i].x, dims[i].y, seg[i], color);
+    }
 }
 
 
@@ -198,51 +358,54 @@ static void DrawPanel(ray::Rectangle rec) {
     Esta classe é responsável pela parte principal do simulador: Ele simula o conjunto de todos os circuitos integrados em uma única classe
     Também é responsável pela interface gráfica
 */
+// ... [todo o código acima permanece igual até a classe BoardAppleJuice]
+
 class BoardAppleJuice {
 public:
     void run() {
         // Valores do 555: ajuste para mudar velocidade
-        const unsigned qtLeds = 4; 
+        const unsigned qtLeds = 8; 
         const double R1 = 10000.0;   
         const double R2 = 10000.0;   
         const double C  = 11e-6;    
 
-        // criando a janela do simulador e limitando em 60 FPS para reduzir o consumo da memória RAM
-        ray::InitWindow(1200, 1000, "Simulador do Apple Juice");
+        // criando a janela do simulador e limitando em 60 FPS
+        ray::InitWindow(1200, 700, "Simulador do Apple Juice");
         ray::SetTargetFPS(60); 
 
-        // aplicando os valores nos circuitos integrados
         Chip4017 chip4017(qtLeds);
         Chip555  chip555(R1, R2, C);
 
-        // Variáveis booleanas seguras para threads: 'running' controla a execução da thread, já 'ligado' controla se o circuito está ativo.
+        Unidade unidade;
+        Dezena dezena;
+
         std::atomic<bool> running{true};
         std::atomic<bool> ligado{false};
 
-        /*
-            Thread que simula o funcionamento do circuito em paralelo.
-            O Chip555 gera pulsos (clock) e, a cada ciclo, o Chip4017 avança.
-            O mutex evita condições de corrida no acesso ao contador.
-            Quando desligado, a thread entra em espera para economizar CPU.
-        */
         std::mutex mtx; 
+
+        // Thread responsável pelo pulso do 555 e atualização do CD4017
         std::thread motor([&]{
             while (running.load()) {
-                if (ligado.load()) {
-                    chip555.pulse(); 
-                    {
-                        std::lock_guard<std::mutex> lock(mtx);
-                        chip4017.shift();
-                    }
-                } else {
+                if (!ligado.load()) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(30));
+                    continue;
                 }
+                // Clock interno do 555 (modo astável)
+                chip555.pulse(); // alterna entre HIGH/LOW internamente
+
+                // Atualiza os chips e displays a cada pulso
+                std::lock_guard<std::mutex> lock(mtx);
+                chip4017.shift();
+                unidade.add();
+                dezena.addOnCarry(unidade.getCarryOut());
             }
         });
 
-        while (!ray::WindowShouldClose()) {
+        // colocando a condição "&&" junto ao running.load(), foi possível resolver o problema do loop infinito do programa que impedia o mesmo de ser fechado adequadamente
+        while (running.load() && !ray::WindowShouldClose()) {
 
-            // condicionais de controle do simulador
+            // controle do simulador
             if (ray::IsKeyPressed(ray::KEY_ENTER)) {
                 ligado.store(!ligado.load());
             }
@@ -250,6 +413,8 @@ public:
             if (ray::IsKeyPressed(ray::KEY_R)) {
                 std::lock_guard<std::mutex> lock(mtx);
                 chip4017.reset();
+                unidade.reset();
+                dezena.reset();
             }
 
             if (ray::IsKeyPressed(ray::KEY_ZERO)) {
@@ -257,11 +422,6 @@ public:
                 break;
             }
 
-
-            /*
-                Lê com segurança o estado atual do Chip4017 usando mutex
-                para evitar condições de corrida com a thread do motor.
-            */
             uint32_t bits = 0;
             {
                 std::lock_guard<std::mutex> lock(mtx);
@@ -269,32 +429,45 @@ public:
             }
 
 
-            // renderizando na tela com base no que foi calculado anteriormente -> aqui tudo ganha forma no sentido "visual".
-            ray::BeginDrawing();
+            // Cor padrão para os botões
+            ray::Color btnColor = ray::LIGHTGRAY;
 
-                // Painel da placa
+            // Botão de reset dos displays
+            ray::Rectangle btnReset = { 400, 450, 140, 40 };
+
+            // Responsável por identificar se o botão esquerdo do mouse foi pressionado
+            if (ray::IsMouseButtonPressed(ray::MOUSE_LEFT_BUTTON)) {
+                ray::Vector2 mouse = ray::GetMousePosition();
+
+                if (mouse.x >= btnReset.x && mouse.x <= btnReset.x + btnReset.width &&
+                    mouse.y >= btnReset.y && mouse.y <= btnReset.y + btnReset.height) {
+                    std::lock_guard<std::mutex> lock(mtx);
+                    unidade.reset();
+                    dezena.reset();
+                }
+            }
+
+            // renderizando as imagens na tela:
+            ray::BeginDrawing();
                 ray::Rectangle panel = { 60, 80, 1080, 320 };
                 DrawPanel(panel);
 
-                // Cabeçalho e status do sistema
                 const char* status = ligado.load() ? "LIGADO" : "DESLIGADO";
                 ray::DrawText(
-                    ray::TextFormat("Status: %s  |  ENTER liga/desliga  |  R reset  |  0 sair", status),
+                    ray::TextFormat("Status: %s  |  ENTER liga/desliga  |  R reset all", status),
                     40, 20, 18, ray::Fade(ray::RAYWHITE, 0.85f)
                 );
 
-                // Indicador do clock do 555
                 ray::Color clk = chip555.isHigh() ? (ray::Color){ 50, 220, 130, 255 } : (ray::Color){ 200, 60, 60, 255 };
                 ray::DrawCircle(830, 30, 7, clk);
-                ray::DrawText("CLK", 845, 24, 16, Fade(ray::RAYWHITE, 0.70f));
+                ray::DrawText("CLK", 845, 24, 16, ray::Fade(ray::RAYWHITE, 0.70f));
 
-                // Informações do CI 555 (frequência e período)
                 ray::DrawText(
                     ray::TextFormat("555: f=%.2f Hz | T=%.3f s", chip555.getFrequency(), chip555.getPeriod()),
                     60, 80, 18, ray::Fade(ray::RAYWHITE, 0.55f)
                 );
 
-                // Configuração da posição e tamanho dos LEDs
+                // LEDs existentes
                 float baseY = 280.0f;
                 float radius = 32.0f;
                 float margem = 120.0f;
@@ -302,29 +475,27 @@ public:
                 float gap = areaUtil / (qtLeds - 1);
                 float startX = margem;
 
-                // Cálculo de pulsação “breathe” para efeito visual
                 float t = (float)ray::GetTime();
                 float breathe = 0.5f + 0.5f * sinf(t * 3.2f);
 
-                // Renderização dos LEDs (acendidos ou apagados) e escrevendo a situação atual com o drawText
                 for (int i = (int)qtLeds - 1; i >= 0; --i) {
                     bool on = ((bits >> i) & 1u) != 0;
                     int idx = (int)qtLeds - 1 - i;
                     ray::Vector2 c = { startX + idx * gap, baseY };
-                
+
                     ray::Color offCore = (ray::Color){ 120, 125, 135, 255 };
                     ray::Color offGlow = (ray::Color){ 120, 125, 135, 0 };
-                
+
                     unsigned char aGlow = (unsigned char)(70 + 90 * breathe);
                     ray::Color onCore = (ray::Color){ 70, 255, 130, 220 };
                     ray::Color onGlow = (ray::Color){ 70, 255, 130, aGlow };
-                
+
                     if(on) {
                         DrawLedGlow(c, radius, onCore, onGlow);
                     } else {
                         DrawLedGlow(c, radius, offCore, offGlow);
                     } 
-                
+
                     ray::DrawText(
                         ray::TextFormat("L%d", idx + 1),
                         (int)(c.x - 14),
@@ -334,9 +505,21 @@ public:
                     );
                 }
 
-                // Mensagem de dica para ajuste do capacitor C
+                // Displays de 7 segmentos
+                ray::Vector2 posUnidade = { 950-740, 450 };
+                ray::Vector2 posDezena  = { 800-740, 450 };
+                float displaySize = 120.0f;
+
+                DrawSevenSegment(posDezena, displaySize, dezena.getOut(), (ray::Color){70, 255, 130, 255});
+                DrawSevenSegment(posUnidade, displaySize, unidade.getOut(), (ray::Color){70, 255, 130, 255});
+
+                // Botão de reset 
+                ray::DrawRectangleRec(btnReset, btnColor);
+                ray::DrawText("Reset Display", (int)(btnReset.x + 5), (int)(btnReset.y + 5), 18, ray::BLACK);
+
+                // Mensagem de apoio
                 ray::DrawText("Dica: aumente C (ex.: 47uF) para ficar mais lento; diminua C (ex.: 10uF) para acelerar.", 60, 360, 16, ray::Fade(ray::RAYWHITE, 0.45f));
-                ray::EndDrawing();
+            ray::EndDrawing();
         }
 
         // Para a thread definindo 'running' como falso e aguarda sua finalização com join se ainda estiver ativa.
@@ -348,8 +531,10 @@ public:
     }
 };
 
+
 // função main: Apenas "orquestra"
 int main() {
+    // try e catch entrariam aqui
     BoardAppleJuice appleJuice;
     appleJuice.run();
     return 0;

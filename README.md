@@ -10,6 +10,10 @@ O objetivo deste projeto foi aplicar os conceitos de programação orientada a o
 <br>
 
 
+# Interface gráfica do Apple Juice
+![Simulador do Apple Juice](images/apple-juice-simulator.png)
+
+
 # Pré Requisitos
 - g++
 - raylib 
@@ -34,6 +38,11 @@ make run
 make clear 
 
 ```
+
+
+# Licença
+Este projeto está licenciado sob a GNU GPLv3. Veja o arquivo LICENSE para mais detalhes.
+
 
 # Colaboradores:
 | [<img src="https://avatars.githubusercontent.com/u/177877856?v=4" width="115"><br><sub>@franksteps</sub>](https://github.com/franksteps) | [<img src="https://avatars.githubusercontent.com/u/186333867?v=4" width="115"><br><sub>@4rth-gs</sub>](https://github.com/4rth-g) | [<img src="https://avatars.githubusercontent.com/u/190228986?v=4" width="115"><br><sub>@RenatoVPF</sub>](https://github.com/RenatoVPF) | [<img src="https://avatars.githubusercontent.com/u/186655848?v=4" width="115"><br><sub>@Cadu-ux</sub>](https://github.com/Cadu-ux) | [<img src="https://avatars.githubusercontent.com/u/161770679?v=4" width="115"><br><sub>@matheusmatos4</sub>](https://github.com/matheusmatos4) |
