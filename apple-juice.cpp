@@ -13,6 +13,7 @@
 
     Responsáveis pelo desenvolvimento deste projeto: Francisco, Renato, Arthur, Matos e Carlos Eduardo 
 
+
     Notas do(s) desenvolvedor(es):
         *  Optei por não utilizar a diretiva using namespace para garantir uma apresentação mais clara do código. Evitar o uso de namespace reforça que determinada 
         parte do código foi retirada de uma biblioteca específica. Essa mesma motivação me levou a encapsular a biblioteca raylib dentro do meu próprio namespace
@@ -24,16 +25,16 @@
 */
 
 // bibliotecas utilizadas no projeto
-#include <iostream>             // Entrada e saída padrão (cout, cerr, etc.)
-#include <string>               // Manipulação de strings (std::string, std::to_string, etc.)
-#include <cmath>                // Funções matemáticas (pow, sin, etc.)
-#include <cstdint>              // Tipos inteiros com tamanho fixo (uint32_t, int64_t, etc.)
-#include <mutex>                // Controle de exclusão mútua para threads (std::mutex, std::lock_guard)
-#include <atomic>               // Variáveis atômicas para comunicação segura entre threads (std::atomic)
-#include <stdexcept>            // Exceções padrão (std::invalid_argument)
-#include <thread>               // Threads do C++ (std::thread)
-#include <chrono>               // Controle de tempo e delays (std::chrono::duration, sleep_for)
-#include <cstdlib>              // Funções utilitárias gerais da biblioteca C (std::exit, std::rand, std::abs, etc.)
+#include <iostream>               // Entrada e saída padrão (cout, cerr, etc.)
+#include <string>                 // Manipulação de strings (std::string, std::to_string, etc.)
+#include <cmath>                  // Funções matemáticas (pow, sin, etc.)
+#include <cstdint>                // Tipos inteiros com tamanho fixo (uint32_t, int64_t, etc.)
+#include <mutex>                  // Controle de exclusão mútua para threads (std::mutex, std::lock_guard)
+#include <atomic>                 // Variáveis atômicas para comunicação segura entre threads (std::atomic)
+#include <stdexcept>              // Exceções padrão (std::invalid_argument)
+#include <thread>                 // Threads do C++ (std::thread)
+#include <chrono>                 // Controle de tempo e delays (std::chrono::duration, sleep_for)
+#include <cstdlib>                // Funções utilitárias gerais da biblioteca C (std::exit, std::rand, std::abs, etc.)
 
 
 /*
@@ -48,16 +49,13 @@ namespace ray{
 }
 
 
-// função para mostrar o tipo de erro que está acontecendo: debug 
-// [[NORETURN]] static void criticalError(...) ... continua
-
-
 
 /*
     Classe base que simula o funcionamento de um display decodificador CD4026, responsável por incrementar a contagem 
     de 0 a 9 e gerar um sinal de carry quando a contagem reinicia (Out volta a 0). 
 
-    a aplicação do virtual é um artifício para o polimorfismo
+    A aplicação do modificador 'virtual' permite o polimorfismo, possibilitando que métodos da classe base sejam 
+    sobrescritos pelas classes derivadas.
 */
 class Chip4026 {
 protected:
@@ -96,6 +94,7 @@ public:
 };
 
 
+
 /*
     Classe que representa o display das unidades.
     Herda Chip4026 e mantém comportamento padrão da contagem de 0 a 9.
@@ -107,6 +106,7 @@ public:
         Chip4026::add();
     }
 };
+
 
 
 /*
@@ -136,44 +136,109 @@ static void DrawSegment(ray::Vector2 pos, float width, float height, bool on, ra
     ray::DrawRectangleV(pos, (ray::Vector2){width, height}, c);
 }
 
+
+
+/*
+    static_cast<size_t>(Segment::A) converte o valor do enum class Segment para um índice válido de array.
+    O array seg[] armazena quais segmentos do display estão ligados (true) ou desligados (false).
+
+    Essa abordagem é mais segura e legível, garantindo que cada segmento seja referenciado corretamente pelo seu nome.
+    Os segmentos são listados em seus datasheets por ordem alfabética, portanto, usar enum class garante melhor desenvolvimento.
+*/
+
+
+// Criei um enum class para que a busca pelos segmentos fosse mais intuitiva
+// ID de cada segmento: a = 0; b = 1; c = 2; d = 3; e = 4; f = 5; g = 6;
+enum class segments{
+    a, b, c, d, e, f, g 
+};
+
+
 // Desenha um display de 7 segmentos com base no valor (0-9)
 static void DrawSevenSegment(ray::Vector2 pos, float size, unsigned int value, ray::Color color) {
     float w = size * 0.2f;
     float h = size * 0.05f;
     float gap = size * 0.02f;
 
-    // definindo quais segmentos precisam estar ligados para representar o número em específico: Segmentos: A, B, C, D, E, F, G
-    bool seg[7] = {false};
+    bool seg[7] = {false}; // definindo o valor de todos os elementos para "false"
     switch(value) {
         case 0: 
-            seg[0]=seg[1]=seg[2]=seg[3]=seg[4]=seg[5]=true; 
+            seg[static_cast<size_t>(segments::a)] = true;
+            seg[static_cast<size_t>(segments::b)] = true;
+            seg[static_cast<size_t>(segments::c)] = true;
+            seg[static_cast<size_t>(segments::d)] = true;
+            seg[static_cast<size_t>(segments::e)] = true;
+            seg[static_cast<size_t>(segments::f)] = true;
             break;
+
         case 1: 
-            seg[1]=seg[2]=true; 
+            seg[static_cast<size_t>(segments::b)] = true;
+            seg[static_cast<size_t>(segments::c)] = true;
             break;
+
         case 2: 
-            seg[0]=seg[1]=seg[6]=seg[4]=seg[3]=true; 
+            seg[static_cast<size_t>(segments::a)] = true;
+            seg[static_cast<size_t>(segments::b)] = true;
+            seg[static_cast<size_t>(segments::d)] = true;
+            seg[static_cast<size_t>(segments::e)] = true;
+            seg[static_cast<size_t>(segments::g)] = true;
             break;
+
         case 3: 
-            seg[0]=seg[1]=seg[6]=seg[2]=seg[3]=true; 
+            seg[static_cast<size_t>(segments::a)] = true;
+            seg[static_cast<size_t>(segments::b)] = true;
+            seg[static_cast<size_t>(segments::c)] = true;
+            seg[static_cast<size_t>(segments::d)] = true;
+            seg[static_cast<size_t>(segments::g)] = true;
             break;
+
         case 4: 
-            seg[5]=seg[6]=seg[1]=seg[2]=true; 
+            seg[static_cast<size_t>(segments::b)] = true;
+            seg[static_cast<size_t>(segments::c)] = true;
+            seg[static_cast<size_t>(segments::f)] = true;
+            seg[static_cast<size_t>(segments::g)] = true; 
             break;
+
         case 5: 
-            seg[0]=seg[5]=seg[6]=seg[2]=seg[3]=true; 
+            seg[static_cast<size_t>(segments::d)] = true;
+            seg[static_cast<size_t>(segments::e)] = true; 
+            seg[static_cast<size_t>(segments::d)] = true;
+            seg[static_cast<size_t>(segments::e)] = true; 
+            seg[static_cast<size_t>(segments::d)] = true;
             break;
+
         case 6: 
-            seg[0]=seg[5]=seg[6]=seg[4]=seg[3]=seg[2]=true; 
+            seg[static_cast<size_t>(segments::a)] = true;
+            seg[static_cast<size_t>(segments::b)] = true; 
+            seg[static_cast<size_t>(segments::c)] = true;
+            seg[static_cast<size_t>(segments::d)] = true; 
+            seg[static_cast<size_t>(segments::e)] = true;
+            seg[static_cast<size_t>(segments::g)] = true;
             break;
+
         case 7: 
-            seg[0]=seg[1]=seg[2]=true; 
+            seg[static_cast<size_t>(segments::a)] = true;
+            seg[static_cast<size_t>(segments::b)] = true;
+            seg[static_cast<size_t>(segments::c)] = true;
             break;
+
         case 8: 
-            seg[0]=seg[1]=seg[2]=seg[3]=seg[4]=seg[5]=seg[6]=true; 
+            seg[static_cast<size_t>(segments::a)] = true;
+            seg[static_cast<size_t>(segments::b)] = true; 
+            seg[static_cast<size_t>(segments::c)] = true;
+            seg[static_cast<size_t>(segments::d)] = true; 
+            seg[static_cast<size_t>(segments::e)] = true;
+            seg[static_cast<size_t>(segments::f)] = true; 
+            seg[static_cast<size_t>(segments::g)] = true;
             break;
-        case 9: 
-            seg[0]=seg[1]=seg[2]=seg[3]=seg[5]=seg[6]=true; 
+
+        case 9:  
+            seg[static_cast<size_t>(segments::a)] = true;
+            seg[static_cast<size_t>(segments::b)] = true; 
+            seg[static_cast<size_t>(segments::c)] = true;
+            seg[static_cast<size_t>(segments::d)] = true; 
+            seg[static_cast<size_t>(segments::f)] = true; 
+            seg[static_cast<size_t>(segments::g)] = true;
             break;
     }
 
@@ -199,6 +264,7 @@ static void DrawSevenSegment(ray::Vector2 pos, float size, unsigned int value, r
         {size - 2*w - 2*gap, h}                          // G
     };
 
+    
     for(int i=0; i<7; i++) {
         DrawSegment(positions[i], dims[i].x, dims[i].y, seg[i], color);
     }
@@ -231,6 +297,10 @@ private:
     }
 
 public:
+    /*
+        Esse construtor cria um objeto Chip555, inicializa seus parâmetros R1, R2 e C, verifica 
+        se eles são válidos, e calcula os tempos de pulso e frequência para o sinal astável.
+    */
     Chip555(double r1Ohms, double r2Ohms, double cFarads)
         : R1(r1Ohms), R2(r2Ohms), C(cFarads) {
         if (R1 <= 0 || R2 <= 0 || C <= 0) {
@@ -294,11 +364,11 @@ public:
 
     // apenas retornam - não podem alterar o valor
     uint32_t getOut() const { 
-        return Out; 
+        return Out;
     }
 
     unsigned getLimitReset() const { 
-        return LimitReset; 
+        return LimitReset;                          
     }
 };
 
@@ -358,27 +428,39 @@ static void DrawPanel(ray::Rectangle rec) {
     Esta classe é responsável pela parte principal do simulador: Ele simula o conjunto de todos os circuitos integrados em uma única classe
     Também é responsável pela interface gráfica
 */
-// ... [todo o código acima permanece igual até a classe BoardAppleJuice]
-
 class BoardAppleJuice {
-public:
-    void run() {
-        // Valores do 555: ajuste para mudar velocidade
-        const unsigned qtLeds = 8; 
-        const double R1 = 10000.0;   
-        const double R2 = 10000.0;   
-        const double C  = 11e-6;    
+private:
+    unsigned qtLeds;
+    double R1, R2, C;
 
+public:
+    BoardAppleJuice(unsigned leds, double r1, double r2, double c)
+        : qtLeds(leds), R1(r1), R2(r2), C(c) {}
+
+    void run() {
         // criando a janela do simulador e limitando em 60 FPS
         ray::InitWindow(1200, 700, "Simulador do Apple Juice");
         ray::SetTargetFPS(60); 
 
+        // criando os objetos e passando os parâmetros para os construtores
         Chip4017 chip4017(qtLeds);
         Chip555  chip555(R1, R2, C);
 
+        // criando o objeto de cada chip 4026: Um responsável por mostrar as dezenas e outra responsável por mostrar as unidades
         Unidade unidade;
         Dezena dezena;
 
+
+        /*
+            ----------------------------------------------------------------------------------------------
+            ----------------------------------------------------------------------------------------------
+            |ESSA É PARTE PRINCIPAL DO PROJETO: É AQUI AONDE TUDO COMEÇA A ACONTECER NA PLACA APPLE JUICE|
+            ----------------------------------------------------------------------------------------------
+            ----------------------------------------------------------------------------------------------
+        */
+
+        // Variáveis atômicas para controlar o estado do simulador (running e ligado)
+        // e mutex para proteger o acesso aos chips compartilhados entre threads
         std::atomic<bool> running{true};
         std::atomic<bool> ligado{false};
 
@@ -402,10 +484,12 @@ public:
             }
         });
 
+
+
         // colocando a condição "&&" junto ao running.load(), foi possível resolver o problema do loop infinito do programa que impedia o mesmo de ser fechado adequadamente
         while (running.load() && !ray::WindowShouldClose()) {
 
-            // controle do simulador
+            // condicionais responsáveis pelo controle do simulador
             if (ray::IsKeyPressed(ray::KEY_ENTER)) {
                 ligado.store(!ligado.load());
             }
@@ -452,6 +536,8 @@ public:
                 ray::Rectangle panel = { 60, 80, 1080, 320 };
                 DrawPanel(panel);
 
+
+                // Status para feedback do usuário 
                 const char* status = ligado.load() ? "LIGADO" : "DESLIGADO";
                 ray::DrawText(
                     ray::TextFormat("Status: %s  |  ENTER liga/desliga  |  R reset all", status),
@@ -467,6 +553,7 @@ public:
                     60, 80, 18, ray::Fade(ray::RAYWHITE, 0.55f)
                 );
 
+
                 // LEDs existentes
                 float baseY = 280.0f;
                 float radius = 32.0f;
@@ -478,6 +565,10 @@ public:
                 float t = (float)ray::GetTime();
                 float breathe = 0.5f + 0.5f * sinf(t * 3.2f);
 
+                /*
+                    Loop que percorre todos os LEDs, desenhando cada um com brilho se estiver aceso e exibindo 
+                    seu número correspondente abaixo.
+                */
                 for (int i = (int)qtLeds - 1; i >= 0; --i) {
                     bool on = ((bits >> i) & 1u) != 0;
                     int idx = (int)qtLeds - 1 - i;
@@ -519,6 +610,7 @@ public:
 
                 // Mensagem de apoio
                 ray::DrawText("Dica: aumente C (ex.: 47uF) para ficar mais lento; diminua C (ex.: 10uF) para acelerar.", 60, 360, 16, ray::Fade(ray::RAYWHITE, 0.45f));
+            
             ray::EndDrawing();
         }
 
@@ -532,10 +624,31 @@ public:
 };
 
 
-// função main: Apenas "orquestra"
+// Função main: cria e executa o simulador Apple Juice
+// Uso do try e catch são ótimos para debug
 int main() {
-    // try e catch entrariam aqui
-    BoardAppleJuice appleJuice;
-    appleJuice.run();
-    return 0;
+    try {
+        unsigned leds = 8;      // Número total de LEDs para o 4017
+        double R1 = 10000.0;    // Resistor R1 do 555
+        double R2 = 10000.0;    // Resistor R2 do 555
+        double C  = 11e-6;      // Capacitor do 555
+
+        // Cria o simulador e o executa
+        BoardAppleJuice appleJuice(leds, R1, R2, C); 
+        appleJuice.run();                             
+    }
+    catch (const std::invalid_argument& e) {
+        std::cerr << "Erro nos parâmetros do simulador: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    catch (const std::exception& e) {
+        std::cerr << "Erro inesperado: " << e.what() << std::endl;
+        return EXIT_FAILURE;
+    }
+    catch (...) {
+        std::cerr << "Erro desconhecido ocorreu!" << std::endl;
+        return EXIT_FAILURE;
+    }
+    // Programa finalizado com sucesso
+    return EXIT_SUCCESS;
 }
