@@ -1,3 +1,7 @@
+/*
+    Testes feitos por Renato antes do merge
+*/
+
 #include <iostream>
 #include <vector>
 #include <thread>

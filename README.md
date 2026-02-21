@@ -1,22 +1,38 @@
 # Apple Juice learning board simulator
+![Placa Apple Juice](images/apple-juice.png)
 
-Apple Juice é uma placa de desenvolvimento para a aprendizagem de circuitos digitais, projetada para o laboratório FnEsc. Este repositório consiste em um simulador dessa placa, escrito em C++, desenvolvido como trabalho da disciplina de Programação Orientada a Objetos (POO).
+O simulador com interface gráfica da placa de aprendizagem, a Apple Juice, foi desenvolvido para o laboratório da FnEsc, no Departamento de Física da UFS. O sistema foi implementado principalmente utilizando o paradigma de programação orientada a objetos, com algumas funcionalidades de caráter procedural.
 <br>
-A apple Juice possui um gerador de clock com o 555, um contador Johnson com quatro saídas ativas usando o 4017, e dois chips 4026, cada um contendo um decodificador para display de sete segmentos e um contador binário decimal (BCD), encapsulados no mesmo circuito integrado (CI). Como entradas, a placa possui dois pinos para a alimentação de todo o circuito, além de um pino para clock externo e um pino de reset, ambos conectados aos CIs 4026.
+A Apple Juice é uma placa de aprendizagem voltada ao estudo de circuitos digitais, construídos com circuitos integrados discretos, como o CD4017, NE555 e CD4026. O sistema oferece suporte à entrada de clock externo, permitindo incrementar a contagem na parte do circuito responsável pela decodificação 
+binária para decimal (a parte que possui os CD4026). Além disso, possui um botão de reset para os circuitos CD4017 e um switch para alternar entre o clock externo e o clock interno gerado pelo 555 configurado em modo astável.
 <br>
-Na placa, há um push button destinado ao reset forçado do 4026 e um switch que permite a seleção entre clock externo e clock interno, também aplicado ao 4026.
+O objetivo deste projeto foi aplicar os conceitos de programação orientada a objetos apresentados em sala de aula na disciplina de POO, sob orientação do professor Carlos Estombelo. Conceitos como tratamento de exceções com try e catch, encapsulamento, herança e polimorfismo foram implementados e utilizados ao longo do desenvolvimento deste código. 
+<br>
 
-# Requisitos
+
+# Pré Requisitos
 - g++
+- raylib 
 - cmake
 
-# Como compilar:
+
+# Como compilar e rodar:
 ```
 # compile o programa
-g++ appleJuice.cpp -o appleJuice 
+git clone https://github.com/FrankSteps/Apple-juice-learning-board-simulator
 
-# rode 
-./appleJuice 
+# vá para a pasta
+cd Apple-juice-learning-board-simulator
+
+# compile 
+make
+
+# rode
+make run 
+
+# delete a executável
+make clear 
+
 ```
 
 # Colaboradores:

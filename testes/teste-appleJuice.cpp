@@ -1,3 +1,7 @@
+/*
+    Apenas o código base desenvolvido por francisco apenas para servir de guia para o andamento do projeto
+*/
+
 // bibliotecas principais 
 #include <iostream>
 #include <string>
