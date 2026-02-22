@@ -200,20 +200,21 @@ static void DrawSevenSegment(ray::Vector2 pos, float size, unsigned int value, r
             break;
 
         case 5: 
+            seg[static_cast<size_t>(segments::a)] = true;
+            seg[static_cast<size_t>(segments::c)] = true;
             seg[static_cast<size_t>(segments::d)] = true;
-            seg[static_cast<size_t>(segments::e)] = true; 
-            seg[static_cast<size_t>(segments::d)] = true;
-            seg[static_cast<size_t>(segments::e)] = true; 
-            seg[static_cast<size_t>(segments::d)] = true;
+            seg[static_cast<size_t>(segments::f)] = true;
+            seg[static_cast<size_t>(segments::g)] = true;
             break;
 
         case 6: 
             seg[static_cast<size_t>(segments::a)] = true;
-            seg[static_cast<size_t>(segments::b)] = true; 
             seg[static_cast<size_t>(segments::c)] = true;
-            seg[static_cast<size_t>(segments::d)] = true; 
+            seg[static_cast<size_t>(segments::d)] = true;
             seg[static_cast<size_t>(segments::e)] = true;
+            seg[static_cast<size_t>(segments::f)] = true;
             seg[static_cast<size_t>(segments::g)] = true;
+            
             break;
 
         case 7: 
@@ -628,10 +629,10 @@ public:
 // Uso do try e catch são ótimos para debug
 int main() {
     try {
-        unsigned leds = 8;      // Número total de LEDs para o 4017
-        double R1 = 10000.0;    // Resistor R1 do 555
+        unsigned leds = 4;      // Número total de LEDs para o 4017
+        double R1 = 1000.0;     // Resistor R1 do 555
         double R2 = 10000.0;    // Resistor R2 do 555
-        double C  = 11e-6;      // Capacitor do 555
+        double C  = 7.37e-6;    // Capacitor do 555
 
         // Cria o simulador e o executa
         BoardAppleJuice appleJuice(leds, R1, R2, C); 
