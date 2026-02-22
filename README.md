@@ -1,55 +1,92 @@
 # Apple Juice learning board simulator
+
 ![Placa Apple Juice](images/apple-juice.png)
 
-O simulador com interface gráfica da placa de aprendizagem, a Apple Juice, foi desenvolvido para o laboratório da FnEsc, no Departamento de Física da UFS. O sistema foi implementado principalmente utilizando o paradigma de programação orientada a objetos, com algumas funcionalidades de caráter procedural.
-<br>
-A Apple Juice é uma placa de aprendizagem voltada ao estudo de circuitos digitais, construídos com circuitos integrados discretos, como o CD4017, NE555 e CD4026. O sistema oferece suporte à entrada de clock externo, permitindo incrementar a contagem na parte do circuito responsável pela decodificação 
-binária para decimal (a parte que possui os CD4026). Além disso, possui um botão de reset para os circuitos CD4017 e um switch para alternar entre o clock externo e o clock interno gerado pelo 555 configurado em modo astável.
-<br>
-O objetivo deste projeto foi aplicar os conceitos de programação orientada a objetos apresentados em sala de aula na disciplina de POO, sob orientação do professor Carlos Estombelo. Conceitos como tratamento de exceções com try e catch, encapsulamento, herança e polimorfismo foram implementados e utilizados ao longo do desenvolvimento deste código. 
-<br>
+O simulador com interface gráfica da placa de aprendizagem Apple Juice foi desenvolvido para o laboratório da FnEsc, no Departamento de Física da UFS. O sistema foi implementado, principalmente, utilizando o paradigma de programação orientada a objetos, com algumas funcionalidades de caráter procedural.
+
+A Apple Juice é uma placa de aprendizagem voltada ao estudo de circuitos digitais construídos com circuitos integrados discretos, como o CD4017, NE555 e CD4026. O sistema oferece suporte à entrada de clock externo, permitindo incrementar a contagem na parte do circuito responsável pela decodificação binária para decimal (a seção que utiliza o CD4026). Além disso, possui um botão de reset para os circuitos CD4017 e um switch para alternar entre o clock externo e o clock interno gerado pelo 555 configurado em modo astável. 
+
+Leia sobre os componentes que estão presentes no projeto clicando [aqui](./documentacao/appleJuice.pdf).
+
+O objetivo deste projeto foi aplicar os conceitos de programação orientada a objetos apresentados em sala de aula na disciplina de POO, sob orientação do professor Carlos Estombelo. Conceitos como tratamento de exceções com try e catch, encapsulamento, herança e polimorfismo foram utilizados ao longo do desenvolvimento do sistema. 
+
+A documentação completa escrita pelo professor passando as orientações está disponível [aqui](./paraDisciplina/orientacao.pdf).
 
 
-# Interface gráfica do Apple Juice
+## Interface gráfica do Apple Juice
 ![Simulador do Apple Juice](images/apple-juice-simulator.png)
 
 
-# Pré Requisitos
-- g++
-- raylib 
-- cmake
+## Features 
+Simulação do CI NE555 em modo astável
+<br>
+Simulação do CD4017 (contador Johnson)
+<br>
+Decodificação com CD4026
+<br>
+Interface gráfica utilizando raylib
+<br>
 
 
-# Como compilar e rodar:
+## Estrutura do projeto
 ```
-# compile o programa
-git clone https://github.com/FrankSteps/Apple-juice-learning-board-simulator
+Apple-juice-learning-board-simulator/
+├── documentacao                    # Documentação do projeto (arquivos LaTeX e PDF final) 
+    ├── appleJuice.aux
+    ├── appleJuice.log 
+    ├── appleJuice.pdf 
+    └── appleJuice.tex
+├── images                          # Imagens utilizadas no README
+    ├── apple-juice-simulator.png 
+    └── apple-juice.png 
+├── paraDisciplina                  # Materiais complementares da disciplina
+    └── orientacao.pdf
+├── testes                          # Testes unitários e experimentais
+    ├── teste-appleJuice.cpp
+    ├── teste.cpp
+    └── testes.cpp
+├── apple-juice.cpp                 # Arquivo principal do simulador
+├── CONTRIBUTING.md                 # Diretrizes para contribuição no projeto
+├── LICENSE                         # Licença do projeto (GNU GPLv3)
+├── Makefile                        # Script de compilação e execução
+└── README.md                       # Documentação principal do repositório
+```
 
-# vá para a pasta
+## Pré-requisitos
+- g++ (com suporte a C++17)
+- cmake 
+- raylib
+- pkg-config
+
+> **NixOS:** use `nix-shell` antes de compilar. O arquivo `shell.nix` já está incluído no repositório.
+
+
+## Como compilar e rodar
+
+```bash
+# clone o repositório
+git clone https://github.com/FrankSteps/Apple-juice-learning-board-simulator
 cd Apple-juice-learning-board-simulator
 
-# compile 
+# compile o simulador
 make
 
-# rode
-make run 
+# compile e rode o simulador
+make run
 
-# delete a executável
-make clear 
+# compile e rode os testes unitários
+make test
 
+# remova os binários gerados
+make clean
 ```
 
+## Compatibilidade
+Este projeto é compatível com Linux, Windows e macOS.
 
-# Licença
+## Licença
 Este projeto está licenciado sob a GNU GPLv3. Veja o arquivo LICENSE para mais detalhes.
 
-
-# Colaboradores:
+## Colaboradores
 | [<img src="https://avatars.githubusercontent.com/u/177877856?v=4" width="115"><br><sub>@franksteps</sub>](https://github.com/franksteps) | [<img src="https://avatars.githubusercontent.com/u/186333867?v=4" width="115"><br><sub>@4rth-gs</sub>](https://github.com/4rth-g) | [<img src="https://avatars.githubusercontent.com/u/190228986?v=4" width="115"><br><sub>@RenatoVPF</sub>](https://github.com/RenatoVPF) | [<img src="https://avatars.githubusercontent.com/u/186655848?v=4" width="115"><br><sub>@Cadu-ux</sub>](https://github.com/Cadu-ux) | [<img src="https://avatars.githubusercontent.com/u/161770679?v=4" width="115"><br><sub>@matheusmatos4</sub>](https://github.com/matheusmatos4) |
 | :---: | :---: | :---: | :---: | :---: |
-
-
-
-
-
-
